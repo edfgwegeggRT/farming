@@ -3,32 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Farming Simulator</title>
+    <title>Farming Simulator 2.0</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; }
-        .farm { display: flex; justify-content: center; gap: 10px; margin-top: 20px; }
-        .plot { width: 100px; height: 100px; background-color: brown; display: flex; align-items: center; justify-content: center; }
-        .crop { width: 80px; height: 80px; }
-        button { margin-top: 10px; padding: 10px; }
+        body { font-family: Arial, sans-serif; text-align: center; background-color: #87CEEB; margin: 0; padding: 0; }
+        .farm-container { display: flex; justify-content: center; gap: 10px; margin-top: 20px; flex-wrap: wrap; max-width: 90vw; margin-left: auto; margin-right: auto; }
+        .plot { width: 80px; height: 80px; background-color: brown; display: flex; align-items: center; justify-content: center; border: 2px solid #654321; cursor: pointer; }
+        .menu, .store, .boss-battle { margin-top: 20px; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+        button { padding: 10px; font-size: 14px; cursor: pointer; border-radius: 5px; border: none; background-color: #4CAF50; color: white; }
+        button:hover { background-color: #45a049; }
+        .stats { margin-top: 20px; font-size: 16px; }
+        @media (min-width: 600px) {
+            .plot { width: 100px; height: 100px; }
+            button { font-size: 16px; padding: 12px; }
+        }
     </style>
 </head>
 <body>
-    <h1>Farming Simulator 🚜</h1>
-    <p>Money: $<span id="money">100</span></p>
-    <button onclick="buySeed()">Buy Seed ($10)</button>
-    <div class="farm">
-        <div class="plot" onclick="plantCrop(this)"></div>
-        <div class="plot" onclick="plantCrop(this)"></div>
-        <div class="plot" onclick="plantCrop(this)"></div>
+    <h1>Farming Simulator 2.0 🚜</h1>
+    <div class="stats">
+        <p>Money: $<span id="money">100</span></p>
+        <p>Seeds: <span id="seeds">0</span></p>
+        <p>Animals: <span id="animals">0</span></p>
+        <p>Crops: <span id="crops">0</span></p>
+        <p>World Level: <span id="world">1</span></p>
     </div>
+    <div class="menu">
+        <button onclick="buySeed()">Buy Seed ($10)</button>
+        <button onclick="buyAnimal()">Buy Animal ($50)</button>
+    </div>
+    <div class="store">
+        <button onclick="upgradeFarm()">Upgrade Farm ($200)</button>
+        <button onclick="sellCrops()">Sell Crops</button>
+    </div>
+    <div class="boss-battle">
+        <button onclick="attemptBossBattle()">Attempt Boss Battle ($150)</button>
+    </div>
+    <div class="farm-container" id="farm"></div>
     <script>
         let money = 100;
         let seeds = 0;
+        let animals = 0;
+        let world = 1;
+        let crops = 0;
 
         function buySeed() {
             if (money >= 10) {
                 money -= 10;
                 seeds += 1;
+                updateUI();
+            } else {
+                alert("Not enough money!");
+            }
+        }
+
+        function buyAnimal() {
+            if (money >= 50) {
+                money -= 50;
+                animals += 1;
                 updateUI();
             } else {
                 alert("Not enough money!");
@@ -48,13 +79,67 @@
         function harvestCrop(plot) {
             plot.style.backgroundColor = 'brown';
             delete plot.dataset.growing;
-            money += 20;
+            crops += 1;
+            money += 20 * world; // Higher worlds give more money
             updateUI();
+        }
+
+        function sellCrops() {
+            if (crops > 0) {
+                money += crops * (15 * world);
+                crops = 0;
+                updateUI();
+            } else {
+                alert("No crops to sell!");
+            }
+        }
+
+        function upgradeFarm() {
+            if (money >= 200) {
+                money -= 200;
+                createFarmPlots(3);
+                updateUI();
+            } else {
+                alert("Not enough money!");
+            }
+        }
+
+        function attemptBossBattle() {
+            if (money >= 150) {
+                money -= 150;
+                let success = Math.random() < 0.5; // 50% chance to win
+                if (success) {
+                    world += 1;
+                    document.body.style.backgroundColor = world % 2 === 0 ? '#2E8B57' : '#87CEEB';
+                    alert("You defeated the boss and unlocked a new world!");
+                } else {
+                    alert("You lost the boss battle! Try again later.");
+                }
+                updateUI();
+            } else {
+                alert("Not enough money to attempt the boss battle!");
+            }
         }
 
         function updateUI() {
             document.getElementById('money').innerText = money;
+            document.getElementById('seeds').innerText = seeds;
+            document.getElementById('animals').innerText = animals;
+            document.getElementById('crops').innerText = crops;
+            document.getElementById('world').innerText = world;
         }
+
+        function createFarmPlots(num) {
+            const farm = document.getElementById('farm');
+            for (let i = 0; i < num; i++) {
+                let plot = document.createElement('div');
+                plot.classList.add('plot');
+                plot.onclick = function () { plantCrop(plot); };
+                farm.appendChild(plot);
+            }
+        }
+
+        createFarmPlots(6);
     </script>
 </body>
 </html>
