@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farming Simulator</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        .farm { display: flex; justify-content: center; gap: 10px; margin-top: 20px; }
+        .plot { width: 100px; height: 100px; background-color: brown; display: flex; align-items: center; justify-content: center; }
+        .crop { width: 80px; height: 80px; }
+        button { margin-top: 10px; padding: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Farming Simulator 🚜</h1>
+    <p>Money: $<span id="money">100</span></p>
+    <button onclick="buySeed()">Buy Seed ($10)</button>
+    <div class="farm">
+        <div class="plot" onclick="plantCrop(this)"></div>
+        <div class="plot" onclick="plantCrop(this)"></div>
+        <div class="plot" onclick="plantCrop(this)"></div>
+    </div>
+    <script>
+        let money = 100;
+        let seeds = 0;
+
+        function buySeed() {
+            if (money >= 10) {
+                money -= 10;
+                seeds += 1;
+                updateUI();
+            } else {
+                alert("Not enough money!");
+            }
+        }
+
+        function plantCrop(plot) {
+            if (seeds > 0 && !plot.dataset.growing) {
+                seeds -= 1;
+                plot.style.backgroundColor = 'green';
+                plot.dataset.growing = 'true';
+                setTimeout(() => harvestCrop(plot), 3000);
+                updateUI();
+            }
+        }
+
+        function harvestCrop(plot) {
+            plot.style.backgroundColor = 'brown';
+            delete plot.dataset.growing;
+            money += 20;
+            updateUI();
+        }
+
+        function updateUI() {
+            document.getElementById('money').innerText = money;
+        }
+    </script>
+</body>
+</html>
