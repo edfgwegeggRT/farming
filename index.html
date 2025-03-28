@@ -6,7 +6,7 @@
     <title>Farming Simulator 2.0</title>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; background-color: #87CEEB; margin: 0; padding: 0; }
-        .farm-container { display: flex; justify-content: center; gap: 10px; margin-top: 20px; flex-wrap: wrap; max-width: 90vw; margin-left: auto; margin-right: auto; }
+        .farm-container { display: flex; justify-content: center; gap: 10px; margin-top: 20px; flex-wrap: wrap; max-width: 90vw; margin-left: auto; margin-right: auto; position: relative; }
         .plot { width: 80px; height: 80px; background-color: brown; display: flex; align-items: center; justify-content: center; border: 2px solid #654321; cursor: pointer; }
         .menu, .store, .boss-battle { margin-top: 20px; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
         button { padding: 10px; font-size: 14px; cursor: pointer; border-radius: 5px; border: none; background-color: #4CAF50; color: white; }
@@ -39,12 +39,24 @@
         <button onclick="attemptBossBattle()">Attempt Boss Battle ($150)</button>
     </div>
     <div class="farm-container" id="farm"></div>
+
+    <!-- Mobile buttons for planting and collecting -->
+    <div class="mobile-controls">
+        <button onclick="plantCrop()">Plant</button>
+        <button onclick="harvestCrop()">Collect</button>
+    </div>
+
     <script>
         let money = 100;
         let seeds = 0;
         let animals = 0;
         let world = 1;
         let crops = 0;
+        let currentPlotIndex = 0;
+        const farm = document.getElementById('farm');
+
+        // Farm plot state
+        const plots = [];
 
         function buySeed() {
             if (money >= 10) {
@@ -66,12 +78,12 @@
             }
         }
 
-        function plantCrop(plot) {
-            if (seeds > 0 && !plot.dataset.growing) {
+        function plantCrop() {
+            if (seeds > 0 && plots[currentPlotIndex].dataset.growing !== 'true') {
                 seeds -= 1;
-                plot.style.backgroundColor = 'green';
-                plot.dataset.growing = 'true';
-                setTimeout(() => harvestCrop(plot), 3000);
+                plots[currentPlotIndex].style.backgroundColor = 'green';
+                plots[currentPlotIndex].dataset.growing = 'true';
+                setTimeout(() => harvestCrop(plots[currentPlotIndex]), 3000);
                 updateUI();
             }
         }
@@ -130,15 +142,39 @@
         }
 
         function createFarmPlots(num) {
-            const farm = document.getElementById('farm');
             for (let i = 0; i < num; i++) {
                 let plot = document.createElement('div');
                 plot.classList.add('plot');
-                plot.onclick = function () { plantCrop(plot); };
+                plot.onclick = function () { currentPlotIndex = i; }
+                plots.push(plot);
                 farm.appendChild(plot);
             }
         }
 
+        // Handle PC Keyboard Input (WASD / P / C)
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'w' || e.key === 'ArrowUp') {
+                currentPlotIndex -= 3;
+                if (currentPlotIndex < 0) currentPlotIndex = 0;
+            }
+            if (e.key === 's' || e.key === 'ArrowDown') {
+                currentPlotIndex += 3;
+                if (currentPlotIndex >= plots.length) currentPlotIndex = plots.length - 1;
+            }
+            if (e.key === 'a' || e.key === 'ArrowLeft') {
+                currentPlotIndex -= 1;
+                if (currentPlotIndex < 0) currentPlotIndex = 0;
+            }
+            if (e.key === 'd' || e.key === 'ArrowRight') {
+                currentPlotIndex += 1;
+                if (currentPlotIndex >= plots.length) currentPlotIndex = plots.length - 1;
+            }
+            if (e.key === 'p') { plantCrop(); }
+            if (e.key === 'c') { harvestCrop(plots[currentPlotIndex]); }
+            updateUI();
+        });
+
+        // Initialize farm with 6 plots
         createFarmPlots(6);
     </script>
 </body>
