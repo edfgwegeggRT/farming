@@ -7,7 +7,8 @@
     <style>
         body { font-family: Arial, sans-serif; text-align: center; background-color: #87CEEB; margin: 0; padding: 0; }
         .farm-container { display: flex; justify-content: center; gap: 10px; margin-top: 20px; flex-wrap: wrap; max-width: 90vw; margin-left: auto; margin-right: auto; position: relative; }
-        .plot { width: 80px; height: 80px; background-color: brown; display: flex; align-items: center; justify-content: center; border: 2px solid #654321; cursor: pointer; }
+        .plot { width: 80px; height: 80px; background-color: brown; display: flex; align-items: center; justify-content: center; border: 2px solid #654321; cursor: pointer; position: relative; }
+        .player { width: 50px; height: 50px; background-color: red; position: absolute; border-radius: 50%; transition: transform 0.2s; }
         .menu, .store, .boss-battle { margin-top: 20px; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
         button { padding: 10px; font-size: 14px; cursor: pointer; border-radius: 5px; border: none; background-color: #4CAF50; color: white; }
         button:hover { background-color: #45a049; }
@@ -52,11 +53,13 @@
         let animals = 0;
         let world = 1;
         let crops = 0;
-        let currentPlotIndex = 0;
         const farm = document.getElementById('farm');
-
-        // Farm plot state
+        const player = document.createElement('div');
+        let currentPlotIndex = 0;
         const plots = [];
+
+        player.classList.add('player');
+        farm.appendChild(player);
 
         function buySeed() {
             if (money >= 10) {
@@ -79,11 +82,12 @@
         }
 
         function plantCrop() {
-            if (seeds > 0 && plots[currentPlotIndex].dataset.growing !== 'true') {
+            const plot = plots[currentPlotIndex];
+            if (seeds > 0 && plot.dataset.growing !== 'true') {
                 seeds -= 1;
-                plots[currentPlotIndex].style.backgroundColor = 'green';
-                plots[currentPlotIndex].dataset.growing = 'true';
-                setTimeout(() => harvestCrop(plots[currentPlotIndex]), 3000);
+                plot.style.backgroundColor = 'green';
+                plot.dataset.growing = 'true';
+                setTimeout(() => harvestCrop(plot), 3000);
                 updateUI();
             }
         }
@@ -151,31 +155,45 @@
             }
         }
 
+        function movePlayer(direction) {
+            const maxRows = Math.sqrt(plots.length);
+            let row = Math.floor(currentPlotIndex / maxRows);
+            let col = currentPlotIndex % maxRows;
+
+            if (direction === 'up' && row > 0) {
+                currentPlotIndex -= maxRows;
+            } else if (direction === 'down' && row < maxRows - 1) {
+                currentPlotIndex += maxRows;
+            } else if (direction === 'left' && col > 0) {
+                currentPlotIndex -= 1;
+            } else if (direction === 'right' && col < maxRows - 1) {
+                currentPlotIndex += 1;
+            }
+
+            const plot = plots[currentPlotIndex];
+            const plotPosition = plot.getBoundingClientRect();
+            player.style.top = plotPosition.top + 'px';
+            player.style.left = plotPosition.left + 'px';
+        }
+
         // Handle PC Keyboard Input (WASD / P / C)
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'w' || e.key === 'ArrowUp') {
-                currentPlotIndex -= 3;
-                if (currentPlotIndex < 0) currentPlotIndex = 0;
-            }
-            if (e.key === 's' || e.key === 'ArrowDown') {
-                currentPlotIndex += 3;
-                if (currentPlotIndex >= plots.length) currentPlotIndex = plots.length - 1;
-            }
-            if (e.key === 'a' || e.key === 'ArrowLeft') {
-                currentPlotIndex -= 1;
-                if (currentPlotIndex < 0) currentPlotIndex = 0;
-            }
-            if (e.key === 'd' || e.key === 'ArrowRight') {
-                currentPlotIndex += 1;
-                if (currentPlotIndex >= plots.length) currentPlotIndex = plots.length - 1;
-            }
+            if (e.key === 'w' || e.key === 'ArrowUp') movePlayer('up');
+            if (e.key === 's' || e.key === 'ArrowDown') movePlayer('down');
+            if (e.key === 'a' || e.key === 'ArrowLeft') movePlayer('left');
+            if (e.key === 'd' || e.key === 'ArrowRight') movePlayer('right');
             if (e.key === 'p') { plantCrop(); }
             if (e.key === 'c') { harvestCrop(plots[currentPlotIndex]); }
             updateUI();
         });
 
+        // Mobile Buttons
+        document.getElementById('plant-btn').onclick = function () { plantCrop(); };
+        document.getElementById('collect-btn').onclick = function () { harvestCrop(plots[currentPlotIndex]); };
+
         // Initialize farm with 6 plots
         createFarmPlots(6);
+        movePlayer('right');
     </script>
 </body>
 </html>
