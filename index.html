@@ -165,6 +165,9 @@
             let row = Math.floor(currentPlotIndex / maxRows);
             let col = currentPlotIndex % maxRows;
 
+            let targetX = 0;
+            let targetY = 0;
+
             if (direction === 'up' && row > 0) {
                 currentPlotIndex -= maxRows;
             } else if (direction === 'down' && row < maxRows - 1) {
@@ -175,10 +178,37 @@
                 currentPlotIndex += 1;
             }
 
+            // Calculate new player position on the plot
             const plot = plots[currentPlotIndex];
             const plotPosition = plot.getBoundingClientRect();
-            player.style.top = plotPosition.top + 'px';
-            player.style.left = plotPosition.left + 'px';
+            targetX = plotPosition.left + (plotSize / 2) - (player.offsetWidth / 2);
+            targetY = plotPosition.top + (plotSize / 2) - (player.offsetHeight / 2);
+
+            smoothMovePlayer(targetX, targetY);
+        }
+
+        // Smooth movement function
+        function smoothMovePlayer(targetX, targetY) {
+            const speed = 4; // Control how fast the player moves
+            let currentX = parseFloat(player.style.left) || 0;
+            let currentY = parseFloat(player.style.top) || 0;
+
+            // Calculate the difference in position
+            let deltaX = targetX - currentX;
+            let deltaY = targetY - currentY;
+
+            // If the movement is very small, stop the animation
+            if (Math.abs(deltaX) < 0.5 && Math.abs(deltaY) < 0.5) {
+                player.style.left = targetX + 'px';
+                player.style.top = targetY + 'px';
+                return;
+            }
+
+            // Move the player gradually towards the target position
+            player.style.left = currentX + deltaX / speed + 'px';
+            player.style.top = currentY + deltaY / speed + 'px';
+
+            requestAnimationFrame(() => smoothMovePlayer(targetX, targetY));
         }
 
         // Handle PC Keyboard Input (WASD / P / C)
