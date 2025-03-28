@@ -7,17 +7,21 @@
     <style>
         body { font-family: Arial, sans-serif; text-align: center; background-color: #87CEEB; margin: 0; padding: 0; }
         .farm-container { display: flex; justify-content: center; gap: 10px; margin-top: 20px; flex-wrap: wrap; max-width: 90vw; margin-left: auto; margin-right: auto; position: relative; }
-        .plot { width: 80px; height: 80px; background-color: brown; display: flex; align-items: center; justify-content: center; border: 2px solid #654321; cursor: pointer; position: relative; }
-        .player { width: 50px; height: 50px; background-color: red; position: absolute; border-radius: 50%; transition: transform 0.2s; }
+        .plot { width: 80px; height: 80px; background-color: brown; display: flex; align-items: center; justify-content: center; border: 2px solid black; cursor: pointer; position: relative; }
+        .player { width: 50px; height: 50px; background-color: red; position: absolute; border-radius: 50%; }
         .menu, .store, .boss-battle { margin-top: 20px; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
         button { padding: 10px; font-size: 14px; cursor: pointer; border-radius: 5px; border: none; background-color: #4CAF50; color: white; }
         button:hover { background-color: #45a049; }
         .stats { margin-top: 20px; font-size: 16px; }
-        @media (min-width: 600px) {
-            .plot { width: 100px; height: 100px; }
-            button { font-size: 16px; padding: 12px; }
+        .mobile-controls { margin-top: 20px; display: flex; justify-content: center; gap: 10px; }
+        .mobile-controls button { padding: 10px; font-size: 16px; background-color: #4CAF50; color: white; }
+        
+        /* Show mobile controls only on small devices */
+        @media (max-width: 767px) {
+            .mobile-controls { display: flex; }
         }
-        /* Hide mobile controls on desktop */
+
+        /* Hide mobile controls on tablet and larger devices */
         @media (min-width: 768px) {
             .mobile-controls { display: none; }
         }
@@ -45,10 +49,10 @@
     </div>
     <div class="farm-container" id="farm"></div>
 
-    <!-- Mobile controls for planting and collecting -->
+    <!-- Mobile controls for moving left and right -->
     <div class="mobile-controls">
-        <button onclick="plantCrop()">Plant</button>
-        <button onclick="harvestCrop()">Collect</button>
+        <button onclick="movePlayer('left')">Left</button>
+        <button onclick="movePlayer('right')">Right</button>
     </div>
 
     <script>
@@ -62,6 +66,7 @@
         let currentPlotIndex = 0;
         const plots = [];
         const plotSize = 80;
+        const plotsPerRow = 3; // Define the number of plots per row for layout purposes
 
         player.classList.add('player');
         farm.appendChild(player);
@@ -161,28 +166,21 @@
         }
 
         function movePlayer(direction) {
-            const maxRows = Math.sqrt(plots.length);
-            let row = Math.floor(currentPlotIndex / maxRows);
-            let col = currentPlotIndex % maxRows;
+            const maxRows = Math.ceil(plots.length / plotsPerRow);
+            let row = Math.floor(currentPlotIndex / plotsPerRow);
+            let col = currentPlotIndex % plotsPerRow;
 
-            let targetX = 0;
-            let targetY = 0;
-
-            if (direction === 'up' && row > 0) {
-                currentPlotIndex -= maxRows;
-            } else if (direction === 'down' && row < maxRows - 1) {
-                currentPlotIndex += maxRows;
-            } else if (direction === 'left' && col > 0) {
+            if (direction === 'left' && col > 0) {
                 currentPlotIndex -= 1;
-            } else if (direction === 'right' && col < maxRows - 1) {
+            } else if (direction === 'right' && col < plotsPerRow - 1) {
                 currentPlotIndex += 1;
             }
 
-            // Calculate new player position on the plot
+            // Move the player to the center of the selected plot
             const plot = plots[currentPlotIndex];
             const plotPosition = plot.getBoundingClientRect();
-            targetX = plotPosition.left + (plotSize / 2) - (player.offsetWidth / 2);
-            targetY = plotPosition.top + (plotSize / 2) - (player.offsetHeight / 2);
+            const targetX = plotPosition.left + (plotSize / 2) - (player.offsetWidth / 2);
+            const targetY = plotPosition.top + (plotSize / 2) - (player.offsetHeight / 2);
 
             smoothMovePlayer(targetX, targetY);
         }
@@ -213,10 +211,8 @@
 
         // Handle PC Keyboard Input (WASD / P / C)
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'w' || e.key === 'ArrowUp') movePlayer('up');
-            if (e.key === 's' || e.key === 'ArrowDown') movePlayer('down');
-            if (e.key === 'a' || e.key === 'ArrowLeft') movePlayer('left');
-            if (e.key === 'd' || e.key === 'ArrowRight') movePlayer('right');
+            if (e.key === 'ArrowLeft') movePlayer('left');
+            if (e.key === 'ArrowRight') movePlayer('right');
             if (e.key === 'p') { plantCrop(); }
             if (e.key === 'c') { harvestCrop(plots[currentPlotIndex]); }
             updateUI();
