@@ -17,6 +17,10 @@
             .plot { width: 100px; height: 100px; }
             button { font-size: 16px; padding: 12px; }
         }
+        /* Hide mobile controls on desktop */
+        @media (min-width: 768px) {
+            .mobile-controls { display: none; }
+        }
     </style>
 </head>
 <body>
@@ -41,7 +45,7 @@
     </div>
     <div class="farm-container" id="farm"></div>
 
-    <!-- Mobile buttons for planting and collecting -->
+    <!-- Mobile controls for planting and collecting -->
     <div class="mobile-controls">
         <button onclick="plantCrop()">Plant</button>
         <button onclick="harvestCrop()">Collect</button>
@@ -186,10 +190,6 @@
             if (e.key === 'c') { harvestCrop(plots[currentPlotIndex]); }
             updateUI();
         });
-
-        // Mobile Buttons
-        document.getElementById('plant-btn').onclick = function () { plantCrop(); };
-        document.getElementById('collect-btn').onclick = function () { harvestCrop(plots[currentPlotIndex]); };
 
         // Initialize farm with 6 plots
         createFarmPlots(6);
